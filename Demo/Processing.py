@@ -132,6 +132,9 @@ def retrain_ranker(credentials,ranker_id):
     #TRAIN_FILE_PATH=''
     GROUND_TRUTH_FILE='static/Historic_Data/cranfield-gt.csv'
     RANKER_NAME="travel_ranker"
+    retrieve_and_rank = RetrieveAndRankV1(
+        username=USERNAME,
+        password=PASSWORD)
 #Running command that trains a ranker
     cmd = 'python train.py -u %s:%s -i %s -c %s -x %s -n %s' %\
     (USERNAME, PASSWORD, GROUND_TRUTH_FILE, SOLR_CLUSTER_ID, COLLECTION_NAME,RANKER_NAME )
