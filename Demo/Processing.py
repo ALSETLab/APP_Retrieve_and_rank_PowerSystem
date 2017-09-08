@@ -172,11 +172,11 @@ def main(Json, Csv):
             result[u"number"].append([])
             for i in range(1,len(doc)):
                 result[u"number"][-1].append(int(doc[i]))
-    credentials = {"cs_ranker_id": "CUSTOM_RANKER_ID", "username": "398941d3-4eec-4044-825d-05ab160a1655", \
-               "config_name": "rr_android_config", "cluster_id": "sc2280e5a3_385f_4e4e_940b_8c3e02853b77", \
-               "ranker_id": "7ff701x33-rank-2304", "password": "AULMLN26YUSu", "url":\
+    credentials = {"cs_ranker_id": "CUSTOM_RANKER_ID", "username": "*********************", \
+               "config_name": "rr_android_config", "cluster_id": "*********************", \
+               "ranker_id": "*********************", "password": "*********************", "url":\
                "https://gateway.watsonplatform.net/retrieve-and-rank/api/v1/", \
-               "collection_name": "rr_andriod_collection1"}
+               "collection_name": "*********************"}
     BASEURL=credentials['url']
     SOLRURL= BASEURL+"solr_clusters/"
     RANKER_URL=BASEURL+"rankers"
