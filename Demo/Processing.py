@@ -120,7 +120,7 @@ def delete_old_ranker(credentials,ranker_id):
     output = process.communicate()[0] 
     return output
 	
-def retrain_ranker(credentials,ranker_id):
+def retrain_ranker(TRAINING_DATA,credentials,ranker_id):
     delete_result=delete_old_ranker(credentials,ranker_id)
     BASEURL=credentials['url']
     SOLRURL= BASEURL+"solr_clusters/"
@@ -141,28 +141,26 @@ def retrain_ranker(credentials,ranker_id):
     try:
         process = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE)
         output = process.communicate()[0]
-        print (output.decode("utf-8")) 
+        output=output.decode("utf-8")
+        print (output)        
     except:
         print ('Command:')
         print (cmd)
         print ('Response:')
         print (output)
-    #check whether the ranker is created
-    output = retrieve_and_rank.list_rankers()
+# creat ranker
+    with open(TRAINING_DATA, 'r') as training_data:
+        ranker_output = retrieve_and_rank.create_ranker(training_data=training_data, name=RANKER_NAME)
     try:
-        rankers =  output['rankers']
-        for i in range(len(rankers)):
-            ranker_json = rankers[i]
-            if ranker_json['name'] == RANKER_NAME:
-                found = True
-                ranker_id = ranker_json['ranker_id']
-        credentials['ranker_id'] = ranker_id 
+        print (json.dumps(ranker_output, sort_keys=True, indent=4))
+        credentials['ranker_id'] = ranker_output['ranker_id']
     except:
+        print ('Command:')
+        print (cmd)
         print ('Response:')
-        print (output)
-    return (credentials)
+        print (ranker_output)
+    return credentials 
 
- 
 def main(Json, Csv):
     result = {u"id": [],u"title": [],u"number": [],u"row": []};
     for jfile in Json:
@@ -175,11 +173,11 @@ def main(Json, Csv):
             result[u"number"].append([])
             for i in range(1,len(doc)):
                 result[u"number"][-1].append(int(doc[i]))
-    credentials = {"cs_ranker_id": "CUSTOM_RANKER_ID", "username": "*********************", \
-               "config_name": "rr_android_config", "cluster_id": "*********************", \
-               "ranker_id": "*********************", "password": "*********************", "url":\
+    credentials = {"cs_ranker_id": "CUSTOM_RANKER_ID", "username": "398941d3-4eec-4044-825d-05ab160a1655", \
+               "config_name": "rr_android_config", "cluster_id": "sc2280e5a3_385f_4e4e_940b_8c3e02853b77", \
+               "ranker_id": "7ff711x34-rank-2400", "password": "AULMLN26YUSu", "url":\
                "https://gateway.watsonplatform.net/retrieve-and-rank/api/v1/", \
-               "collection_name": "*********************"}
+               "collection_name": "rr_andriod_collection1"}
     BASEURL=credentials['url']
     SOLRURL= BASEURL+"solr_clusters/"
     RANKER_URL=BASEURL+"rankers"
@@ -190,17 +188,21 @@ def main(Json, Csv):
     QUESTION="which events exceeding the limites"
     QUESTION = QUESTION.replace(" ","%20")
     RANKER_ID=credentials['ranker_id']
-#check the status of ranker    
-    status,ranker_id=check_status(credentials) 
+    TRAINING_DATA='static/Historic_Data/trainingdata.csv'
+    print (RANKER_ID)
+#check the status of ranker  
+    credentials=retrain_ranker(TRAINING_DATA,credentials,RANKER_ID)
+    status,ranker_id=check_status(credentials)
     if status=='Training':# status=='Available' ||
         print ('Test it!')
         #Running command that queries Solr
         curl_cmd = 'curl -u "%s":"%s" "%s%s/solr/%s/fcselect?ranker_id=%s&q=%s&wt=json&fl=id,title"' %\
-       (USERNAME, PASSWORD, SOLRURL, SOLR_CLUSTER_ID, COLLECTION_NAME, RANKER_ID, QUESTION)    
+       (USERNAME, PASSWORD, SOLRURL, SOLR_CLUSTER_ID, COLLECTION_NAME, credentials['ranker_id'], QUESTION)    
         process = subprocess.Popen(shlex.split(curl_cmd), stdout=subprocess.PIPE)
         output = process.communicate()[0] 
         output=output.decode("utf-8") 
         print (output)
+        delete_old_ranker(credentials,credentials['ranker_id'])
     else:
         print ('failed, we will train A new ranker')
         credentials=retrain_ranker(credentials,ranker_id)
@@ -210,7 +212,8 @@ def main(Json, Csv):
         process = subprocess.Popen(shlex.split(curl_cmd), stdout=subprocess.PIPE)
         output = process.communicate()[0]
         output=output.decode("utf-8")
-        print (output["response"]["docs"])
+        print (output)
+        delete_old_ranker(credentials,credentials['ranker_id'])
     return output
 	
 	
