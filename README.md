@@ -3,4 +3,9 @@
 3, You can also look at the results from Bluemix by clicking '	
 python-demo-dittographic-nyctophobia.mybluemix.net' in our Bluemix account, and then add '/web/results' to the web address. 
 The results will be shown;
+<p align="center">
+  <img src="/CAPTURE.pgn" width="350"/>
+  <img src="/CAPTURE.pgn" width="350"/>
+</p>
+
 4, Next step is to put our functions into the app and combine it with the API.
