@@ -9,6 +9,8 @@ import subprocess
 import shlex
 from watson_developer_cloud import RetrieveAndRankV1
 import pysolr 
+import csv
+
 # This File Contains the actual code
 
 def start():
@@ -130,7 +132,7 @@ def retrain_ranker(TRAINING_DATA,credentials,ranker_id):
     SOLR_CLUSTER_ID=credentials['cluster_id']
     COLLECTION_NAME=credentials['collection_name']
     #TRAIN_FILE_PATH=''
-    GROUND_TRUTH_FILE='static/Historic_Data/cranfield-gt.csv'
+    GROUND_TRUTH_FILE='Temp_csv.csv'
     RANKER_NAME="travel_ranker"
     retrieve_and_rank = RetrieveAndRankV1(
         username=USERNAME,
@@ -162,17 +164,11 @@ def retrain_ranker(TRAINING_DATA,credentials,ranker_id):
     return credentials 
 
 def main(Json, Csv):
-    result = {u"id": [],u"title": [],u"number": [],u"row": []};
-    for jfile in Json:
-        for doc in jfile:
-            result[u"id"].append(doc[u"doc"][u"id"])
-            result[u"title"].append(doc[u"doc"][u"title"])
-    for csvfile in Csv:
-        for doc in csvfile:
-            result[u"row"].append(doc[0])
-            result[u"number"].append([])
-            for i in range(1,len(doc)):
-                result[u"number"][-1].append(int(doc[i]))
+    Csv = Csv[0]
+    fcsv = open("Temp_csv.csv","wb")
+    wr = csv.writer(fcsv, dialect='excel')
+    wr.writerows(Csv)
+    
     credentials = {"cs_ranker_id": "CUSTOM_RANKER_ID", "username": "398941d3-4eec-4044-825d-05ab160a1655", \
                "config_name": "rr_android_config", "cluster_id": "sc2280e5a3_385f_4e4e_940b_8c3e02853b77", \
                "ranker_id": "7ff711x34-rank-2400", "password": "AULMLN26YUSu", "url":\
@@ -189,19 +185,17 @@ def main(Json, Csv):
     QUESTION = QUESTION.replace(" ","%20")
     RANKER_ID=credentials['ranker_id']
     TRAINING_DATA='static/Historic_Data/trainingdata.csv'
-    print (RANKER_ID)
 #check the status of ranker  
     credentials=retrain_ranker(TRAINING_DATA,credentials,RANKER_ID)
     status,ranker_id=check_status(credentials)
     if status=='Training':# status=='Available' ||
-        print ('Test it!')
         #Running command that queries Solr
         curl_cmd = 'curl -u "%s":"%s" "%s%s/solr/%s/fcselect?ranker_id=%s&q=%s&wt=json&fl=id,title"' %\
        (USERNAME, PASSWORD, SOLRURL, SOLR_CLUSTER_ID, COLLECTION_NAME, credentials['ranker_id'], QUESTION)    
         process = subprocess.Popen(shlex.split(curl_cmd), stdout=subprocess.PIPE)
         output = process.communicate()[0] 
-        output=output.decode("utf-8") 
-        print (output)
+        output=output.decode() 
+        output = json.loads(output)
         delete_old_ranker(credentials,credentials['ranker_id'])
     else:
         print ('failed, we will train A new ranker')
@@ -211,8 +205,8 @@ def main(Json, Csv):
            (USERNAME, PASSWORD, SOLRURL, SOLR_CLUSTER_ID, COLLECTION_NAME, credentials['ranker_id'], QUESTION)    
         process = subprocess.Popen(shlex.split(curl_cmd), stdout=subprocess.PIPE)
         output = process.communicate()[0]
-        output=output.decode("utf-8")
-        print (output)
+        output=output.decode()
+        output = json.loads(output)
         delete_old_ranker(credentials,credentials['ranker_id'])
     return output
 	

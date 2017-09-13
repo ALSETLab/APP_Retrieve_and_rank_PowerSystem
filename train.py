@@ -97,9 +97,9 @@ with open(RELEVANCE_FILE) as csvfile:
 print ('Generating training data complete.')
 
 # Train the ranker with the training data that was generate above from the query/relevance input     
-ranker_curl_cmd = 'curl -k -X POST -u %s -F training_data=@%s -F training_metadata="{\\"name\\":\\"%s\\"}" %s' % (CREDS, TRAININGDATA, RANKERNAME, RANKERURL)
-if DEBUG:
-    print (ranker_curl_cmd)
-process = subprocess.Popen(shlex.split(ranker_curl_cmd), stdout=subprocess.PIPE)
-response = process.communicate()[0]
-print (response.decode("utf-8"))
+#ranker_curl_cmd = 'curl -k -X POST -u %s -F training_data=@%s -F training_metadata="{\\"name\\":\\"%s\\"}" %s' % (CREDS, TRAININGDATA, RANKERNAME, RANKERURL)
+#if DEBUG:
+    #print (ranker_curl_cmd)
+#process = subprocess.Popen(shlex.split(ranker_curl_cmd), stdout=subprocess.PIPE)
+#response = process.communicate()[0]
+#print (response.decode("utf-8"))

@@ -15,14 +15,15 @@ def html_LoadHistoric():
     result = result + "<label for='csv'> CSV File (PMU Data): </label><select id='csv' name='csv'>"
 	
     # Find all csv Files in the directory
-    for file in os.listdir(".\Historic_Data"):
+    for file in os.listdir(os.getcwd() + "/Historic_Data"):
         if file.endswith(".csv"):
             result = result + "<option>" + file + "</option>"
     
     result = result + "</select><br><br>"
     result = result + "<label for='json'> JSON File (Warnings): </label><select id='json' name='json'>"
     # Find all csv Files in the directory
-    for file in os.listdir("Historic_Data"):
+
+    for file in os.listdir(os.getcwd() + "/Historic_Data"):
         if file.endswith(".json"):
             result = result + "<option>" + file + "</option>"
     
@@ -118,11 +119,11 @@ def Retrieve_Result ():
     client.connect()
     database_json = client['results'];
     
-    result = []
+    result = {u"data" : [], u"Time" : []}
             
     for dat in database_json:
-        result.append(dat[u'data'])
-    
+        result[u"data"].append(dat[u'data'])
+        result[u"Time"].append(dat[u'Time-in'])
+        
     client.disconnect()    
     return json.dumps(result)
-    

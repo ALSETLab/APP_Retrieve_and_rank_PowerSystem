@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>HTML Interface Output</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<link rel="stylesheet" href="assets/stylesheets/style.css" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+</head>
+<body>
+    <h1>Results Search and Rank Funtionality</h1>
+    <div id="table_1"></div>
+	
+	<script>
+		
+        
+        
+        function update_data(data) 
+        {
+            var body =  document.getElementsByTagName('body')[0];
+            
+          for (var i=0; i < data["Time"].length; i++)
+          {
+            var div = document.createElement("div");
+            var header = document.createElement("h2");
+            header.innerHTML = "Results Run " + i + " started at: " + format_time(data["Time"][i]);
+            
+            // add error message
+            var errorP = document.createElement("p");
+            if (data["data"][i]["responseHeader"]["status"] == 500)
+            {
+                errorP.innerHTML = "Error 500: " + data["data"][i]["error"]["msg"]
+            }
+            
+            // Add Table with Results
+            var tbl = document.createElement("table");
+            var tbody = document.createElement("tbody");
+            
+            var row = document.createElement("tr");
+            var cell = document.createElement("td");
+            cell.innerHTML = "Id";
+            row.appendChild(cell);
+            cell.innerHTML = "Title";
+            row.appendChild(cell);
+            tbody.appendChild(row);
+                
+            for (var j=0; j < data["data"][i]["response"]["numFound"]; j++)
+            {
+                var row = document.createElement("tr");
+                var cell = document.createElement("td");
+            
+                cell.innerHTML = data["data"][i]["response"]["docs"][j]["id"];
+                row.appendChild(cell);
+                
+                cell = document.createElement("td");
+                cell.innerHTML = data["data"][i]["response"]["docs"][j]["title"];
+                row.appendChild(cell);
+                tbody.appendChild(row);
+            }
+            
+            tbl.appendChild(tbody);
+            
+            
+            div.appendChild(header);
+            div.appendChild(errorP);
+            div.appendChild(tbl);
+            body.appendChild(div);
+          }
+
+
+          //var Table = document.getElementById('table_1');
+          //var tbl = document.createElement("table");
+          //var tbody = document.createElement("tbody");
+          
+          //var row = document.createElement("tr");
+          //var cell = document.createElement("td");
+          //cell.innerHTML = "Id";
+          //row.appendChild(cell);
+          //cell = document.createElement("td");
+          //cell.innerHTML = "Title";
+          //row.appendChild(cell);
+          //tbody.appendChild(row);
+          //dat = data[0]
+          //for (var i=0; i < len(data); i++)
+          //{
+            //row = document.createElement("tr");
+            //cell = document.createElement("td");
+            
+            //cell.innerHTML = data[0]["id"][i];
+            //row.appendChild(cell);
+            //cell = document.createElement("td");
+            //cell.innerHTML = data[0]["title"][i];
+            //row.appendChild(cell);
+            //tbody.appendChild(row);
+          //}
+          
+          //tbl.appendChild(tbody);
+          //Table.appendChild(tbl);
+          
+          //Tester = document.getElementById('plot_1');
+          //var plot_data = []
+          //var trace = {}
+        //for (var i=0; i < 4; i++)
+          //{
+            //console.log(data[0]["number"][i]);
+            
+              //trace = {
+                //  x: data[0]["number"][i].map(Number),
+                  //y: data[0]["number"][i].map(Number),
+                  //type: 'scatter',
+                  //name: data[0]["row"][i],
+                //};
+                //plot_data.push(trace);
+          //}
+          
+        
+            
+
+         //   Plotly.newPlot("plot_1", plot_data);
+        
+        }
+        
+                  
+        function format_time(s) 
+        {
+                return new Date(s * 1e3).toISOString();
+        }
+        
+        data = $.getJSON( "data.data", function (data) { update_data (data)})
+	</script>
+</body>
+</html>

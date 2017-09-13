@@ -47,7 +47,7 @@ class Custom_Http(Handler):
             elif regex.group(0) == "/web/startStream":
                 print("Start Streaming Historic Data")
                 Generate_HTML.start_historic(self.path);
-                self.wfile.write("<html><body><h1>Started Streaming</h1></body></html>")
+            	self.wfile.write("<html><body><h1>Started Streaming</h1></body></html>")
             elif regex.group(0) == "/web/results":
                 f = open("Results.html",'rb')
                 self.wfile.write(f.read())
@@ -63,7 +63,7 @@ class Custom_Http(Handler):
                     print("Failed to find File")
                     self.wfile.write("<html><body><h1>File Does not Exist</h1></body></html>")
             else:
-                print (regex.group(0))
+                print regex.group(0)
                 self.wfile.write("<html><body><h1>Error Invalid URL</h1></body></html>")
         
     def do_HEAD(self):
@@ -85,8 +85,9 @@ if __name__ == '__main__':
 
     # start Thread with actual computation 
     thread = Process(target = Processing.start, args = ())
-    thread.start() 
-     
+    thread.start()
+        
+        
     # Change current directory to avoid exposure of control files
     os.chdir('static')
 

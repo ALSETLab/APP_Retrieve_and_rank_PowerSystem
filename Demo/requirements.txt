@@ -1,2 +1,0 @@
-pysolr==3.4.0
-cloudant==2.3.1
