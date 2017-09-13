@@ -1,12 +1,11 @@
-# Python Hello World Sample
+1, This is a web-based application;
+2, You can run it locally by the command 'python server.py', and then look at the web 'http://127.0.0.1:8000/web/start';
+3, You can also look at the results from Bluemix by clicking '	
+python-demo-dittographic-nyctophobia.mybluemix.net' in our Bluemix account, and then add '/web/results' to the web address. 
+The results will be shown;
+<p align="center">
+  <img src="/CAPTURE.pgn" width="350"/>
+  <img src="/CAPTURE.pgn" width="350"/>
+</p>
 
-This application demonstrates a simple, reusable Python web application.
-
-## Run the app locally
-
-1. [Install Python][]
-1. cd into this project's root directory
-1. Run `python server.py`
-1. Access the running app in a browser at <http://localhost:8000>
-
-[Install Python]: https://www.python.org/downloads/
+4, Next step is to put our functions into the app and combine it with the API.
