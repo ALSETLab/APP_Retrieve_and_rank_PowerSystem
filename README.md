@@ -4,7 +4,7 @@
 python-demo-dittographic-nyctophobia.mybluemix.net' in our Bluemix account, and then add '/web/results' to the web address. 
 The results will be shown;
 <p align="center">
-  <img src="https://github.com/Wendy0601/APP_Retrieve_and_rank_PowerSystem/CAPTURE.PNG" width="350"/>
+  <img src="https://github.com/Wendy0601/APP_Retrieve_and_rank_PowerSystem/Capture.PNG" width="350"/>
 </p>
 
 4, Next step is to put our functions into the app and combine it with the API.
