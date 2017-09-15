@@ -574,7 +574,7 @@ def main(Json, Csv):
         delete_old_ranker(credentials,credentials['ranker_id'])
         main_static_overload()
         num=9    
-        main_Event_Identification(num)
+        #main_Event_Identification(num)
     else:
         print ('failed, we will train A new ranker')
         credentials=retrain_ranker(credentials,ranker_id)
