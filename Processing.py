@@ -375,14 +375,14 @@ def main_static_overload():
     deltime=10
 #determine whether it is overload
     f_x,i2h,ridh,F,f,G,g,steady_state_lines,test  = static_overload(t,S1,p,d,deltime,simTime)
-    print ('f_x=',f_x)
+    #print ('f_x=',f_x)
     # show the dataset
-    plt.figure
-    plt.plot(t,S1)
-    plt.xlabel('Time (second)')
-    plt.ylabel(' Aparent Power')
-    plt.show()
-    return f_x 
+    #plt.figure
+    #plt.plot(t,S1)
+    #plt.xlabel('Time (second)')
+    #plt.ylabel(' Aparent Power')
+    #plt.show()
+    return t,S1,f_x
 
 def angle0(F=None,G=None ): # this function is used to compute subspace angle
     QF=lg.orth(F)
@@ -544,7 +544,7 @@ def main(Json, Csv):
     fcsv = open("Temp_csv.csv","wb")
     wr = csv.writer(fcsv, dialect='excel')
     wr.writerows(Csv)
-    output={'Func1': 0, 'Func2':0, 'Func3': 0}
+    
     credentials = {"cs_ranker_id": "CUSTOM_RANKER_ID", "username": "398941d3-4eec-4044-825d-05ab160a1655", \
                "config_name": "rr_android_config", "cluster_id": "sc2280e5a3_385f_4e4e_940b_8c3e02853b77", \
                "ranker_id": "7ff711x34-rank-2400", "password": "AULMLN26YUSu", "url":\
@@ -564,6 +564,7 @@ def main(Json, Csv):
 #check the status of ranker  
     credentials=retrain_ranker(TRAINING_DATA,credentials,RANKER_ID)
     status,ranker_id=check_status(credentials)
+    result = {"t": [],"S1": [],"f_x": [],"title": []};
     if status=='Training':# status=='Available' ||
         #Running command that queries Solr
         curl_cmd = 'curl -u "%s":"%s" "%s%s/solr/%s/fcselect?ranker_id=%s&q=%s&wt=json&fl=id,title"' %\
@@ -573,9 +574,8 @@ def main(Json, Csv):
         output=output.decode() 
         output = json.loads(output)
         delete_old_ranker(credentials,credentials['ranker_id'])
-        output['Func2']=main_static_overload()[0]
-        num=9    
-        #output['Func1']=main_Event_Identification(num)
+        #num=9    
+        #main_Event_Identification(num)
     else:
         print ('failed, we will train A new ranker')
         credentials=retrain_ranker(credentials,ranker_id)
@@ -587,7 +587,15 @@ def main(Json, Csv):
         output=output.decode()
         output = json.loads(output)
         delete_old_ranker(credentials,credentials['ranker_id'])
-    return output
+    t,S1,f_x=main_static_overload()
+    result["f_x"]=f_x
+    result["title"].append('The static overload index')
+    result["title"].append('The aparent power with time')
+    for time in t:
+        result["t"].append(time)
+    for s in S1:
+        result["S1"].append(s)
+    return result
 	
 	
 	
