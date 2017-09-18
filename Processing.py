@@ -382,6 +382,7 @@ def main_static_overload():
     plt.xlabel('Time (second)')
     plt.ylabel(' Aparent Power')
     plt.show()
+    return f_x 
 
 def angle0(F=None,G=None ): # this function is used to compute subspace angle
     QF=lg.orth(F)
@@ -543,7 +544,7 @@ def main(Json, Csv):
     fcsv = open("Temp_csv.csv","wb")
     wr = csv.writer(fcsv, dialect='excel')
     wr.writerows(Csv)
-    
+    output={'Func1': 0, 'Func2':0, 'Func3': 0}
     credentials = {"cs_ranker_id": "CUSTOM_RANKER_ID", "username": "398941d3-4eec-4044-825d-05ab160a1655", \
                "config_name": "rr_android_config", "cluster_id": "sc2280e5a3_385f_4e4e_940b_8c3e02853b77", \
                "ranker_id": "7ff711x34-rank-2400", "password": "AULMLN26YUSu", "url":\
@@ -572,9 +573,9 @@ def main(Json, Csv):
         output=output.decode() 
         output = json.loads(output)
         delete_old_ranker(credentials,credentials['ranker_id'])
-        main_static_overload()
+        output['Func2']=main_static_overload()[0]
         num=9    
-        #main_Event_Identification(num)
+        #output['Func1']=main_Event_Identification(num)
     else:
         print ('failed, we will train A new ranker')
         credentials=retrain_ranker(credentials,ranker_id)
