@@ -1,3 +1,6 @@
 pysolr==3.4.0
 cloudant==2.3.1
 watson_developer_cloud==0.26.1
+pandas==0.20.3
+numpy==1.13.1
+SciPy==1.0.0b1

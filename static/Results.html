@@ -9,9 +9,8 @@
 </head>
 </head>
 <body>
-    <h1>Results Search and Rank Funtionality</h1>
-    <div id="table_1"></div>
-	
+    <h1>Results Search and Rank Funtionality and Static Overload index</h1>
+    
 	<script>
 		
         
@@ -27,10 +26,14 @@
             header.innerHTML = "Results Run " + i + " started at: " + format_time(data["Time"][i]);
             
             // add error message
+            var head = document.createElement("p");
+            head.innerHTML = "Question: " + data["data"][i]["Retrieve-Rank"]["question"] + "<br>"
+            
             var errorP = document.createElement("p");
-            if (data["data"][i]["responseHeader"]["status"] == 500)
+            if (data["data"][i]["Retrieve-Rank"]["responseHeader"]["status"] == 500)
             {
-                errorP.innerHTML = "Error 500: " + data["data"][i]["error"]["msg"]
+                errorP.innerHTML =  "<br>This Data was only Retrieve, Not enought Training Data available to Train the Ranker"
+                //errorP.innerHTML = "Error 500: " + data["data"][i]["error"]["msg"]
             }
             
             // Add Table with Results
@@ -45,26 +48,57 @@
             row.appendChild(cell);
             tbody.appendChild(row);
                 
-            for (var j=0; j < data["data"][i]["response"]["numFound"]; j++)
+            for (var j=0; j < data["data"][i]["Retrieve-Rank"]["response"]["numFound"]; j++)
             {
                 var row = document.createElement("tr");
                 var cell = document.createElement("td");
             
-                cell.innerHTML = data["data"][i]["response"]["docs"][j]["id"];
+                cell.innerHTML = data["data"][i]["Retrieve-Rank"]["response"]["docs"][j]["id"];
                 row.appendChild(cell);
                 
                 cell = document.createElement("td");
-                cell.innerHTML = data["data"][i]["response"]["docs"][j]["title"];
+                cell.innerHTML = data["data"][i]["Retrieve-Rank"]["response"]["docs"][j]["title"];
                 row.appendChild(cell);
                 tbody.appendChild(row);
             }
             
             tbl.appendChild(tbody);
             
+            // Generate static overload stuff
+            p_overload = document.createElement("p")
+            p_overload.innerHTML = "The static Overload index is: " +  data["data"][i]["statid-overload"]["f_x"]
+            
+            div_plot = document.createElement("div");
+            var plot_data = []
+            trace = {
+                  x: data["data"][i]["statid-overload"]["t"].map(Number),
+                  y: data["data"][i]["statid-overload"]["S1"].map(Number),
+                  type: 'scatter',
+                  name: 'Single Line',
+                };
+                plot_data.push(trace);              
+
+            //   Plotly.newPlot("plot_1", plot_data);
+            var layout = {
+                title: 'Apperent Power of a sngle Line',
+                xaxis: {title: 'Time (s)', showline: true, mirror: 'allticks', ticks: 'inside'},
+                yaxis: {title: 'Apperent Power', showline: true, mirror: 'allticks', ticks: 'inside'},
+                margin: {l: 40, b: 40, t: 60},
+                
+                }
+            Plotly.plot(div_plot, plot_data, layout, {showLink: false});
+  
+  
+  
+  
+           
             
             div.appendChild(header);
+            div.appendChild(head);
             div.appendChild(errorP);
             div.appendChild(tbl);
+            div.appendChild(p_overload);
+            div.appendChild(div_plot);
             body.appendChild(div);
           }
 

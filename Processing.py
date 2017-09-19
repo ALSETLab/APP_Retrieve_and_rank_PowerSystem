@@ -60,7 +60,7 @@ def start():
             client.disconnect()
             
             #Run Processing 
-            if ((len(new_csv)>0) or (len(new_json)>0)):
+            if ((len(new_csv)>0) and (len(new_json)>0)):
                 print ("Found new data")
                 result = main(new_json,new_csv)
                 save_data(result)
@@ -588,14 +588,22 @@ def main(Json, Csv):
         output = json.loads(output)
         delete_old_ranker(credentials,credentials['ranker_id'])
     t,S1,f_x=main_static_overload()
-    result["f_x"]=f_x
-    result["title"].append('The static overload index')
-    result["title"].append('The aparent power with time')
-    for time in t:
-        result["t"].append(time)
-    for s in S1:
-        result["S1"].append(s)
-    return result
-	
+    result[u"f_x"]= f_x
+    result[u"title"].append(u'The static overload index')
+    result[u"title"].append(u'The aparent power with time')
+    
+    print (t);
+    # t is a 1D array:
+    for i in range(0,len(t)):
+        result[u"t"].append(t[i][0]);
+
+    #S1 is a 2D array
+    #for i in range(0,len(S1)):
+    #    result[u"S1"].append(list(S1[i]));
+    #For now only plot 1 line, I will fix this later
+    result[u"S1"] = list(S1[:,0]);    
+    
+    combined_result = {u"Retrieve-Rank": output, u"statid-overload": result};
+    return combined_result	
 	
 	
