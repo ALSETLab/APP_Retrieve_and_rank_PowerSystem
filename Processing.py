@@ -17,7 +17,7 @@ import pandas as pd
 import numpy as np
 from scipy import *
 #import scipy.linalg as lg
-import matplotlib.pyplot as plt	
+#import matplotlib.pyplot as plt	
 
 # This File Contains the actual code
 
@@ -526,18 +526,18 @@ def main_Event_Identification(num):
     else:
         print ('This is a '+ str(type_[num]) +' event \n') 
         print ('The minimum subspace angle is '+"{:.2f}".format(min_angle[num])  +' degree \n') 
-    plt.figure
-    plt.plot(voltage[num].T)
-    plt.xlabel('Time  (0.03 second)')
-    plt.ylabel('Voltage (p.u.)') 
-    plt.grid(True)
-    plt.show()
-    plt.figure
-    plt.plot(Vk[num])
-    plt.xlabel('Time (0.03 second)')
-    plt.ylabel('Dominant Singular Vectors') 
-    plt.grid(True)
-    plt.show()
+    #plt.figure
+    #plt.plot(voltage[num].T)
+    #plt.xlabel('Time  (0.03 second)')
+    #plt.ylabel('Voltage (p.u.)') 
+    #plt.grid(True)
+    #plt.show()
+    #plt.figure
+    #plt.plot(Vk[num])
+    #plt.xlabel('Time (0.03 second)')
+    #plt.ylabel('Dominant Singular Vectors') 
+    #plt.grid(True)
+    #plt.show()
 	
 def main(Json, Csv):
     Csv = Csv[0]
