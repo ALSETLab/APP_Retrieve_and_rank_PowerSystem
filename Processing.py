@@ -171,6 +171,89 @@ def retrain_ranker(TRAINING_DATA,credentials,ranker_id):
         print (ranker_output)
     return credentials 
 
+def get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852(container, filename):
+
+    url1 = ''.join(['https://identity.open.softlayer.com', '/v3/auth/tokens'])
+    data = {'auth': {'identity': {'methods': ['password'], 'password': {'user': {'name': 'member_f206ebb1b5775f6df24fec3b4627ab8ef36d5396','domain': {'id': '62cda8210ff64bc0847826085986364d'},
+            'password': 'iDv.U49q0AUirGQ^'}}}}}
+    headers1 = {'Content-Type': 'application/json'}
+    resp1 = requests.post(url=url1, data=json.dumps(data), headers=headers1)
+    resp1_body = resp1.json()
+    for e1 in resp1_body['token']['catalog']:
+        if(e1['type']=='object-store'):
+            for e2 in e1['endpoints']:
+                        if(e2['interface']=='public'and e2['region']=='dallas'):
+                            url2 = ''.join([e2['url'],'/', container, '/', filename])
+    s_subject_token = resp1.headers['x-subject-token']
+    headers2 = {'X-Auth-Token': s_subject_token, 'accept': 'application/json'}
+    resp2 = requests.get(url=url2, headers=headers2)
+    return StringIO(resp2.text)
+	
+def OLAP_import_data():
+    
+    PMU_data = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectluigivanfrettigmailcom', 'PMU_dataset.csv'))
+    for key in PMU_data.keys():
+        PMU_data[key] = PMU_data[key].str.replace('i','j').apply(lambda x: np.complex(x))
+        PMU_data[key] = PMU_data[key].abs()
+    return PMU_data
+
+def OLAP(PMU_data, p_avg, W):   
+    M = PMU_data.values.transpose()
+    n1, n2 = M.shape
+    M_ob = np.ones((n1, n2), dtype=np.int)
+    thrdcoef = 0.01
+    M_rec = np.copy(M)
+    for i in range(n1):
+        for j in range(W, n2):
+            if np.random.uniform() <= p_avg:
+                M_ob[i,j] = 0
+                M_rec[i,j] = 0            
+    M_sub = M[:, 0:W]
+    U1, S1, V1 = np.linalg.svd(M_sub, full_matrices=True)
+    r = 0
+    for i in range(len(S1)):
+        if S1[i] > thrdcoef*max(S1):
+            r += 1
+    U_tp1 = U1[:, 0:r]
+    
+    for i in range(W, n2):
+        dim = sum(M_ob[:, i])
+        U_tp2 = np.zeros((dim, r))
+        M_clm_tp = np.zeros((dim, 1))
+        j = 0
+        for ii in range(n1):
+            if M_ob[ii, i] == 1:
+                U_tp2[j, :] = U_tp1[ii, :]
+                M_clm_tp[j] = M_rec[ii, i]
+                j += 1
+        beta_tp = np.matmul(np.linalg.pinv(U_tp2), M_clm_tp)
+        V_tp = np.matmul(U_tp1, beta_tp)
+        for ii in range(n1):
+            if M_ob[ii, i] == 0:
+                M_rec[ii, i] = V_tp[ii]
+        M_sub = M_rec[:, i-W+1:i+1]
+        U2, S2, V2 = np.linalg.svd(M_sub, full_matrices=True)
+        r = 0
+        for ii in range(len(S2)):
+            if S2[ii] > thrdcoef*max(S2):
+                r += 1
+        U_tp1 = U2[:, 0:r]   
+    return M_rec, M_ob*M	
+	
+def main_MissingData():
+    PMU_data = OLAP_import_data() 
+    p_avg = 0.1
+    W = 30
+    M_rec, M_miss = OLAP(PMU_data, p_avg, W)
+    n1, n2 = M_rec.shape
+    row=3
+    #plt.plot(abs(M_miss[row,:]))  
+    #plt.plot(abs(M_miss[row+1,:]))  
+    #plt.show()
+    #plt.plot(abs(M_rec[row,:]))
+    #plt.plot(abs(M_rec[row+1,:]))
+    #plt.show()
+    return abs(M_miss[row,:]),abs(M_rec[row,:])
 
 def get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852(container, filename):
     """This functions returns a StringIO object containing
@@ -564,7 +647,7 @@ def main(Json, Csv):
 #check the status of ranker  
     credentials=retrain_ranker(TRAINING_DATA,credentials,RANKER_ID)
     status,ranker_id=check_status(credentials)
-    result = {"t": [],"S1": [],"f_x": [],"title": []};
+    result = {"t": [],"S1": [],"f_x": [],"title": [],u"M_miss":[],u"M_rec":[]};
     if status=='Training':# status=='Available' ||
         #Running command that queries Solr
         curl_cmd = 'curl -u "%s":"%s" "%s%s/solr/%s/fcselect?ranker_id=%s&q=%s&wt=json&fl=id,title"' %\
@@ -587,22 +670,23 @@ def main(Json, Csv):
         output=output.decode()
         output = json.loads(output)
         delete_old_ranker(credentials,credentials['ranker_id'])
+    M_miss, M_rec=main_MissingData()
     t,S1,f_x=main_static_overload()
     result[u"f_x"]= f_x
     result[u"title"].append(u'The static overload index')
     result[u"title"].append(u'The aparent power with time')
     
-    print (t);
-    # t is a 1D array:
     for i in range(0,len(t)):
         result[u"t"].append(t[i][0]);
 
-    #S1 is a 2D array
-    #for i in range(0,len(S1)):
-    #    result[u"S1"].append(list(S1[i]));
-    #For now only plot 1 line, I will fix this later
-    result[u"S1"] = list(S1[:,0]);    
-    
+    result[u"M_miss"]=list(M_miss)
+    result[u"M_rec"]=list(M_rec)
+    result[u"S1"] = list(S1[:,0]);
+    plt.plot(result[u"M_miss"])
+    plt.show()
+    plt.plot(result[u"M_rec"])
+    plt.show()
+          
     combined_result = {u"Retrieve-Rank": output, u"statid-overload": result};
     return combined_result	
 	
