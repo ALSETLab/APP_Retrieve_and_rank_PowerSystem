@@ -171,91 +171,7 @@ def retrain_ranker(TRAINING_DATA,credentials,ranker_id):
         print (ranker_output)
     return credentials 
 
-def get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852(container, filename):
-
-    url1 = ''.join(['https://identity.open.softlayer.com', '/v3/auth/tokens'])
-    data = {'auth': {'identity': {'methods': ['password'], 'password': {'user': {'name': 'member_f206ebb1b5775f6df24fec3b4627ab8ef36d5396','domain': {'id': '62cda8210ff64bc0847826085986364d'},
-            'password': 'iDv.U49q0AUirGQ^'}}}}}
-    headers1 = {'Content-Type': 'application/json'}
-    resp1 = requests.post(url=url1, data=json.dumps(data), headers=headers1)
-    resp1_body = resp1.json()
-    for e1 in resp1_body['token']['catalog']:
-        if(e1['type']=='object-store'):
-            for e2 in e1['endpoints']:
-                        if(e2['interface']=='public'and e2['region']=='dallas'):
-                            url2 = ''.join([e2['url'],'/', container, '/', filename])
-    s_subject_token = resp1.headers['x-subject-token']
-    headers2 = {'X-Auth-Token': s_subject_token, 'accept': 'application/json'}
-    resp2 = requests.get(url=url2, headers=headers2)
-    return StringIO(resp2.text)
-	
-def OLAP_import_data():
-    
-    PMU_data = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectluigivanfrettigmailcom', 'PMU_dataset.csv'))
-    for key in PMU_data.keys():
-        PMU_data[key] = PMU_data[key].str.replace('i','j').apply(lambda x: np.complex(x))
-        PMU_data[key] = PMU_data[key].abs()
-    return PMU_data
-
-def OLAP(PMU_data, p_avg, W):   
-    M = PMU_data.values.transpose()
-    n1, n2 = M.shape
-    M_ob = np.ones((n1, n2), dtype=np.int)
-    thrdcoef = 0.01
-    M_rec = np.copy(M)
-    for i in range(n1):
-        for j in range(W, n2):
-            if np.random.uniform() <= p_avg:
-                M_ob[i,j] = 0
-                M_rec[i,j] = 0            
-    M_sub = M[:, 0:W]
-    U1, S1, V1 = np.linalg.svd(M_sub, full_matrices=True)
-    r = 0
-    for i in range(len(S1)):
-        if S1[i] > thrdcoef*max(S1):
-            r += 1
-    U_tp1 = U1[:, 0:r]
-    
-    for i in range(W, n2):
-        dim = sum(M_ob[:, i])
-        U_tp2 = np.zeros((dim, r))
-        M_clm_tp = np.zeros((dim, 1))
-        j = 0
-        for ii in range(n1):
-            if M_ob[ii, i] == 1:
-                U_tp2[j, :] = U_tp1[ii, :]
-                M_clm_tp[j] = M_rec[ii, i]
-                j += 1
-        beta_tp = np.matmul(np.linalg.pinv(U_tp2), M_clm_tp)
-        V_tp = np.matmul(U_tp1, beta_tp)
-        for ii in range(n1):
-            if M_ob[ii, i] == 0:
-                M_rec[ii, i] = V_tp[ii]
-        M_sub = M_rec[:, i-W+1:i+1]
-        U2, S2, V2 = np.linalg.svd(M_sub, full_matrices=True)
-        r = 0
-        for ii in range(len(S2)):
-            if S2[ii] > thrdcoef*max(S2):
-                r += 1
-        U_tp1 = U2[:, 0:r]   
-    return M_rec, M_ob*M	
-	
-def main_MissingData():
-    PMU_data = OLAP_import_data() 
-    p_avg = 0.1
-    W = 30
-    M_rec, M_miss = OLAP(PMU_data, p_avg, W)
-    n1, n2 = M_rec.shape
-    row=3
-    #plt.plot(abs(M_miss[row,:]))  
-    #plt.plot(abs(M_miss[row+1,:]))  
-    #plt.show()
-    #plt.plot(abs(M_rec[row,:]))
-    #plt.plot(abs(M_rec[row+1,:]))
-    #plt.show()
-    return abs(M_miss[row,:]),abs(M_rec[row,:])
-
-def get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852(container, filename):
+def func1_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852(container, filename):
     """This functions returns a StringIO object containing
     the file content from Bluemix Object Storage."""
 
@@ -278,10 +194,10 @@ def get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852(co
 
 #import S1 and t
 def Static_import_data():
-    df_data_1 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'S1.csv'))
+    df_data_1 = pd.read_csv(func1_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'S1.csv'))
     df_data_1.head()
     S1=df_data_1.values 
-    df_data_2 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 't.csv'))
+    df_data_2 = pd.read_csv(func1_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 't.csv'))
     df_data_2.head()
     t=df_data_2.values 
     return t,S1
@@ -458,21 +374,126 @@ def main_static_overload():
     deltime=10
 #determine whether it is overload
     f_x,i2h,ridh,F,f,G,g,steady_state_lines,test  = static_overload(t,S1,p,d,deltime,simTime)
-    #print ('f_x=',f_x)
+    print ('f_x=',f_x)
     # show the dataset
-    #plt.figure
-    #plt.plot(t,S1)
-    #plt.xlabel('Time (second)')
-    #plt.ylabel(' Aparent Power')
-    #plt.show()
+    plt.figure
+    plt.plot(t,S1)
+    plt.xlabel('Time (second)')
+    plt.ylabel(' Aparent Power')
+    plt.show()
     return t,S1,f_x
 
+def func2_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852(container, filename):
+
+    url1 = ''.join(['https://identity.open.softlayer.com', '/v3/auth/tokens'])
+    data = {'auth': {'identity': {'methods': ['password'], 'password': {'user': {'name': 'member_f206ebb1b5775f6df24fec3b4627ab8ef36d5396','domain': {'id': '62cda8210ff64bc0847826085986364d'},
+            'password': 'iDv.U49q0AUirGQ^'}}}}}
+    headers1 = {'Content-Type': 'application/json'}
+    resp1 = requests.post(url=url1, data=json.dumps(data), headers=headers1)
+    resp1_body = resp1.json()
+    for e1 in resp1_body['token']['catalog']:
+        if(e1['type']=='object-store'):
+            for e2 in e1['endpoints']:
+                        if(e2['interface']=='public'and e2['region']=='dallas'):
+                            url2 = ''.join([e2['url'],'/', container, '/', filename])
+    s_subject_token = resp1.headers['x-subject-token']
+    headers2 = {'X-Auth-Token': s_subject_token, 'accept': 'application/json'}
+    resp2 = requests.get(url=url2, headers=headers2)
+    return StringIO(resp2.text)
+	
+def OLAP_import_data():
+    
+    PMU_data = pd.read_csv(func2_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectluigivanfrettigmailcom', 'PMU_dataset.csv'))
+    for key in PMU_data.keys():
+        PMU_data[key] = PMU_data[key].str.replace('i','j').apply(lambda x: np.complex(x))
+        PMU_data[key] = PMU_data[key].abs()
+    return PMU_data
+
+def OLAP(PMU_data, p_avg, W):   
+    M = PMU_data.values.transpose()
+    n1, n2 = M.shape
+    M_ob = np.ones((n1, n2), dtype=np.int)
+    thrdcoef = 0.01
+    M_rec = np.copy(M)
+    for i in range(n1):
+        for j in range(W, n2):
+            if np.random.uniform() <= p_avg:
+                M_ob[i,j] = 0
+                M_rec[i,j] = 0            
+    M_sub = M[:, 0:W]
+    U1, S1, V1 = np.linalg.svd(M_sub, full_matrices=True)
+    r = 0
+    for i in range(len(S1)):
+        if S1[i] > thrdcoef*max(S1):
+            r += 1
+    U_tp1 = U1[:, 0:r]
+    
+    for i in range(W, n2):
+        dim = sum(M_ob[:, i])
+        U_tp2 = np.zeros((dim, r))
+        M_clm_tp = np.zeros((dim, 1))
+        j = 0
+        for ii in range(n1):
+            if M_ob[ii, i] == 1:
+                U_tp2[j, :] = U_tp1[ii, :]
+                M_clm_tp[j] = M_rec[ii, i]
+                j += 1
+        beta_tp = np.matmul(np.linalg.pinv(U_tp2), M_clm_tp)
+        V_tp = np.matmul(U_tp1, beta_tp)
+        for ii in range(n1):
+            if M_ob[ii, i] == 0:
+                M_rec[ii, i] = V_tp[ii]
+        M_sub = M_rec[:, i-W+1:i+1]
+        U2, S2, V2 = np.linalg.svd(M_sub, full_matrices=True)
+        r = 0
+        for ii in range(len(S2)):
+            if S2[ii] > thrdcoef*max(S2):
+                r += 1
+        U_tp1 = U2[:, 0:r]   
+    return M_rec, M_ob*M	
+	
+def main_MissingData():
+    PMU_data = OLAP_import_data() 
+    p_avg = 0.1
+    W = 30
+    M_rec, M_miss = OLAP(PMU_data, p_avg, W)
+    n1, n2 = M_rec.shape
+    row=3
+    #plt.plot(abs(M_miss[row,:]))  
+    #plt.plot(abs(M_miss[row+1,:]))  
+    #plt.show()
+    #plt.plot(abs(M_rec[row,:]))
+    #plt.plot(abs(M_rec[row+1,:]))
+    #plt.show()
+    return abs(M_miss[row,:]),abs(M_rec[row,:])
+
+def func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852(container, filename):
+    """This functions returns a StringIO object containing
+    the file content from Bluemix Object Storage."""
+
+    url1 = ''.join(['https://identity.open.softlayer.com', '/v3/auth/tokens'])
+    data = {'auth': {'identity': {'methods': ['password'],
+            'password': {'user': {'name': 'member_61d8d0026e75d3be7f12e9e3049485ecaf9a8545','domain': {'id': '62cda8210ff64bc0847826085986364d'},
+            'password': 'a{VO6~(dbXVRA7j1'}}}}}
+    headers1 = {'Content-Type': 'application/json'}
+    resp1 = requests.post(url=url1, data=json.dumps(data), headers=headers1)
+    resp1_body = resp1.json()
+    for e1 in resp1_body['token']['catalog']:
+        if(e1['type']=='object-store'):
+            for e2 in e1['endpoints']:
+                        if(e2['interface']=='public'and e2['region']=='dallas'):
+                            url2 = ''.join([e2['url'],'/', container, '/', filename])
+    s_subject_token = resp1.headers['x-subject-token']
+    headers2 = {'X-Auth-Token': s_subject_token, 'accept': 'application/json'}
+    resp2 = requests.get(url=url2, headers=headers2)
+    return StringIO(resp2.text)	
+	
 def angle0(F=None,G=None ): # this function is used to compute subspace angle
     QF=lg.orth(F)
     QG=lg.orth(G) 
     q=min(QF.shape[1],QG.shape[1]) 
     M=np.matmul(QF.T,QG) 
-    Ys,s,Zs=lg.svd(M)  
+    Ys,s,Zs=np.linalg.svd(M, full_matrices=True)
     a=0  
     for i in arange(0,size(s)).reshape(-1):
         a=a + s[i] ** 2
@@ -484,24 +505,24 @@ def angle0(F=None,G=None ): # this function is used to compute subspace angle
 	
 def Event_import_data():
     #import dictionary 
-    df_data_1 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Offline_Dictionary.csv'))
+    df_data_1 = pd.read_csv(func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Offline_Dictionary.csv'))
     df_data_1.head()
     Dictionary=df_data_1.values 
-    df_data_2 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Rank_dic.csv'))
+    df_data_2 = pd.read_csv(func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Rank_dic.csv'))
     rank_dic=df_data_2.values 
     #import 12 testing datasets into list Testdata
-    df_data_3 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Generator_Trip13.csv'))
-    df_data_4 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Generator_Trip14.csv'))
-    df_data_5 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Generator_Trip15.csv'))
-    df_data_6 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Three_Phase_Short_Circuit3.csv'))
-    df_data_7 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Three_Phase_Short_Circuit67.csv'))
-    df_data_8 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Three_Phase_Short_Circuit1.csv'))
-    df_data_9 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Load_Change31.csv'))
-    df_data_10 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Load_Change44.csv'))
-    df_data_11 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Load_Change45.csv')) 
-    df_data_12 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Line_Trip3.csv'))
-    df_data_13 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Line_Trip2.csv'))
-    df_data_14 = pd.read_csv(get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Line_Trip41.csv'))
+    df_data_3 = pd.read_csv(func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Generator_Trip13.csv'))
+    df_data_4 = pd.read_csv(func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Generator_Trip14.csv'))
+    df_data_5 = pd.read_csv(func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Generator_Trip15.csv'))
+    df_data_6 = pd.read_csv(func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Three_Phase_Short_Circuit3.csv'))
+    df_data_7 = pd.read_csv(func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Three_Phase_Short_Circuit67.csv'))
+    df_data_8 = pd.read_csv(func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Three_Phase_Short_Circuit1.csv'))
+    df_data_9 = pd.read_csv(func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Load_Change31.csv'))
+    df_data_10 = pd.read_csv(func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Load_Change44.csv'))
+    df_data_11 = pd.read_csv(func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Load_Change45.csv')) 
+    df_data_12 = pd.read_csv(func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Line_Trip3.csv'))
+    df_data_13 = pd.read_csv(func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Line_Trip2.csv'))
+    df_data_14 = pd.read_csv(func3_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852('DefaultProjectliw14rpiedu', 'Line_Trip41.csv'))
     Testdata=[]
     Testdata.append(df_data_3.values);Testdata.append(df_data_4.values);Testdata.append(df_data_5.values)
     Testdata.append(df_data_6.values);Testdata.append(df_data_7.values);Testdata.append(df_data_8.values)
@@ -544,7 +565,7 @@ def Event_Identification(thres=None,gap=None,Testdata=None,event_num=None, Dicti
         voltage.append(X[:,0:400:3])
         for i in arange(0,row).reshape(-1):
             X[i,:]=X[i,:] -  mean(X[i,0:t01])*ones([1,col])
-        U, s1, Vh = lg.svd(X[:,t01-1:t02:3]) 
+        U, s1, Vh = np.linalg.svd(X[:,t01-1:t02:3]) 
         V = Vh.T  
         sums=0
         ratios=0
@@ -609,18 +630,19 @@ def main_Event_Identification(num):
     else:
         print ('This is a '+ str(type_[num]) +' event \n') 
         print ('The minimum subspace angle is '+"{:.2f}".format(min_angle[num])  +' degree \n') 
-    #plt.figure
-    #plt.plot(voltage[num].T)
-    #plt.xlabel('Time  (0.03 second)')
-    #plt.ylabel('Voltage (p.u.)') 
-    #plt.grid(True)
-    #plt.show()
-    #plt.figure
-    #plt.plot(Vk[num])
-    #plt.xlabel('Time (0.03 second)')
-    #plt.ylabel('Dominant Singular Vectors') 
-    #plt.grid(True)
-    #plt.show()
+    plt.figure
+    plt.plot(voltage[num].T)
+    plt.xlabel('Time  (0.03 second)')
+    plt.ylabel('Voltage (p.u.)') 
+    plt.grid(True)
+    plt.show()
+    plt.figure
+    plt.plot(Vk[num])
+    plt.xlabel('Time (0.03 second)')
+    plt.ylabel('Dominant Singular Vectors') 
+    plt.grid(True)
+    plt.show()
+    return str(type_[num])
 	
 def main(Json, Csv):
     Csv = Csv[0]
