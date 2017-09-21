@@ -712,7 +712,7 @@ def main(Json, Csv):
     print ('This is a '+ type_ +' event \n')
     print ('The minimum subspace angle is '+"{:.2f}".format(min_angle)  +' degree \n')
     result["Type"]=type_
-    result[u"min_anlge"]=min_angle
+    result[u"min_angle"]=min_angle
 
     plt.plot(result[u"M_miss"])
     plt.show()
