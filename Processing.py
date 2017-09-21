@@ -688,7 +688,7 @@ def main(Json, Csv, Question):
         #main_Event_Identification(num)
     else:
         print ('failed, we will train A new ranker')
-        credentials=retrain_ranker(credentials,ranker_id,Csv)
+        credentials=retrain_ranker(TRAINING_DATA,credentials,RANKER_ID, Csv)
         #Running command that queries Solr 
         curl_cmd = 'curl -u "%s":"%s" "%s%s/solr/%s/fcselect?ranker_id=%s&q=%s&wt=json&fl=id,title"' %\
            (USERNAME, PASSWORD, SOLRURL, SOLR_CLUSTER_ID, COLLECTION_NAME, credentials['ranker_id'], QUESTION)    
