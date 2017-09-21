@@ -70,17 +70,19 @@
             
             div_plot = document.createElement("div");
             var plot_data = []
-            trace = {
-                  x: data["data"][i]["statid-overload"]["t"].map(Number),
-                  y: data["data"][i]["statid-overload"]["S1"].map(Number),
-                  type: 'scatter',
-                  name: 'Single Line',
-                };
-                plot_data.push(trace);              
+            for (var j=0; j < data["data"][i]["statid-overload"]["S1"].length; j++)
+            {
+                trace = {
+                      x: data["data"][i]["statid-overload"]["t"].map(Number),
+                      y: data["data"][i]["statid-overload"]["S1"][j].map(Number),
+                      type: 'scatter',
+                    };
+                    plot_data.push(trace);    
+            }                
 
             //   Plotly.newPlot("plot_1", plot_data);
             var layout = {
-                title: 'Apperent Power of a single Line',
+                title: 'Apperent Power',
                 xaxis: {title: 'Time (s)', showline: true, mirror: 'allticks', ticks: 'inside'},
                 yaxis: {title: 'Apperent Power', showline: true, mirror: 'allticks', ticks: 'inside'},
                 margin: {l: 40, b: 40, t: 60},
@@ -88,10 +90,39 @@
                 }
             Plotly.plot(div_plot, plot_data, layout, {showLink: false});
   
-  
-  
-  
+            
+            p_identification = document.createElement("p")
+            p_identification.innerHTML = "Event Identification: " +  data["data"][i]["statid-overload"]["Type"] + "<br><br>" + "minimum subspace angle: " + data["data"][i]["statid-overload"]["min_angle"]
+            
+            div_plot_2 = document.createElement("div");
+            plot_data = []
+
+            
+                trace = {
+                      x: data["data"][i]["statid-overload"]["t"].map(Number),
+                      y: data["data"][i]["statid-overload"]["M_miss"].map(Number),
+                      name: 'Before Data Recovery',
+                      type: 'scatter',
+                    };
+                    plot_data.push(trace);               
+                trace = {
+                      x: data["data"][i]["statid-overload"]["t"].map(Number),
+                      y: data["data"][i]["statid-overload"]["M_rec"].map(Number),
+                       name: 'After Data Recovery',
+                      type: 'scatter',
+                    };
+                    
+                    plot_data.push(trace);   
            
+            var layout = {
+                title: 'Bus Current Data Recovery',
+                xaxis: {title: 'Time (s)', showline: true, mirror: 'allticks', ticks: 'inside'},
+                yaxis: {title: 'Current', showline: true, mirror: 'allticks', ticks: 'inside'},
+                margin: {l: 40, b: 40, t: 60},
+                
+                }
+           Plotly.plot(div_plot_2, plot_data, layout, {showLink: false});
+  
             
             div.appendChild(header);
             div.appendChild(head);
@@ -99,6 +130,8 @@
             div.appendChild(tbl);
             div.appendChild(p_overload);
             div.appendChild(div_plot);
+            div.appendChild(p_identification);
+            div.appendChild(div_plot_2);
             body.appendChild(div);
           }
 

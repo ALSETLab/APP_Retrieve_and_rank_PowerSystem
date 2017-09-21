@@ -17,7 +17,7 @@ import pandas as pd
 import numpy as np
 from scipy import *
 import scipy.linalg as lg
-import matplotlib.pyplot as plt	
+#import matplotlib.pyplot as plt	
 
 # This File Contains the actual code
 
@@ -385,11 +385,11 @@ def main_static_overload():
     f_x,i2h,ridh,F,f,G,g,steady_state_lines,test  = static_overload(t,S1,p,d,deltime,simTime)
     print ('f_x=',f_x)
     # show the dataset
-    plt.figure
-    plt.plot(t,S1)
-    plt.xlabel('Time (second)')
-    plt.ylabel(' Aparent Power')
-    plt.show()
+    #plt.figure
+    #plt.plot(t,S1)
+    #plt.xlabel('Time (second)')
+    #plt.ylabel(' Aparent Power')
+    #plt.show()
     return t,S1,f_x
 
 def func2_get_object_storage_file_with_credentials_9ef91f6a6f554e9fa22e8e2dab2d4852(container, filename):
@@ -667,7 +667,7 @@ def main(Json, Csv, Question):
     SOLR_CLUSTER_ID=credentials['cluster_id']
     COLLECTION_NAME=credentials['collection_name']
     
-    QUESTION = Question.replace(" ","%20")
+    QUESTION = Question.replace("+","%20")
     RANKER_ID=credentials['ranker_id']
     TRAINING_DATA='./static/trainingdata.csv'
 #check the status of ranker  
@@ -688,7 +688,7 @@ def main(Json, Csv, Question):
         #main_Event_Identification(num)
     else:
         print ('failed, we will train A new ranker')
-        credentials=retrain_ranker(credentials,ranker_id,Csv)
+        credentials=retrain_ranker(TRAINING_DATA,credentials,RANKER_ID, Csv)
         #Running command that queries Solr 
         curl_cmd = 'curl -u "%s":"%s" "%s%s/solr/%s/fcselect?ranker_id=%s&q=%s&wt=json&fl=id,title"' %\
            (USERNAME, PASSWORD, SOLRURL, SOLR_CLUSTER_ID, COLLECTION_NAME, credentials['ranker_id'], QUESTION)    
@@ -708,7 +708,11 @@ def main(Json, Csv, Question):
 
     result[u"f_x"]= f_x
     result[u"title"].append(u'The static overload index')
-    result[u"S1"] = list(S1[:,0]);
+    result[u"S1"] = []
+    
+    for i in range(0,len(S1[0,:])):
+         result[u"S1"].append(list(S1[:,i]))
+    
     for i in range(0,len(t)):
         result[u"t"].append(t[i][0]);
     result[u"title"].append(u'The aparent power with time')
@@ -716,14 +720,14 @@ def main(Json, Csv, Question):
 
     print ('This is a '+ type_ +' event \n')
     print ('The minimum subspace angle is '+"{:.2f}".format(min_angle)  +' degree \n')
-    result["Type"]=type_
+    result[u"Type"]=type_
     result[u"min_angle"]=min_angle
 
     #plt.plot(result[u"M_miss"])
     #plt.show()
     #plt.plot(result[u"M_rec"])
     #plt.show()
-          
+    output[u"question"] = Question.replace("+"," ")    
     combined_result = {u"Retrieve-Rank": output, u"statid-overload": result};
     return combined_result	
 	
