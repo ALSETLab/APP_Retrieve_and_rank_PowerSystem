@@ -16,8 +16,8 @@ import requests
 import pandas as pd
 import numpy as np
 from scipy import *
-#import scipy.linalg as lg
-#import matplotlib.pyplot as plt	
+import scipy.linalg as lg
+import matplotlib.pyplot as plt	
 
 # This File Contains the actual code
 
@@ -622,27 +622,27 @@ def main_Event_Identification(num):
     min_angle,type_,E,voltage,Vk= Event_Identification(thres,gap,Testdata,event_num, Dictionary, rank_dic)
     # select the event
     #num=int(input('Please select the number of the event you want to test: \n'))
-    if num > event_num:
-        print ('please select the number less than ' + str(event_num ))
-        num=input('Please select the number of the event you want to test: \n')
-        print ('This is a '+ str(type_[num]) +' event \n' )
-        print ('The minimum subspace angle is '+"{:.2f}".format(min_angle[num])  +' degree \n')
-    else:
-        print ('This is a '+ str(type_[num]) +' event \n') 
-        print ('The minimum subspace angle is '+"{:.2f}".format(min_angle[num])  +' degree \n') 
-    plt.figure
-    plt.plot(voltage[num].T)
-    plt.xlabel('Time  (0.03 second)')
-    plt.ylabel('Voltage (p.u.)') 
-    plt.grid(True)
-    plt.show()
-    plt.figure
-    plt.plot(Vk[num])
-    plt.xlabel('Time (0.03 second)')
-    plt.ylabel('Dominant Singular Vectors') 
-    plt.grid(True)
-    plt.show()
-    return str(type_[num])
+    #if num > event_num:
+        #print ('please select the number less than ' + str(event_num ))
+        #num=input('Please select the number of the event you want to test: \n')
+        #print ('This is a '+ str(type_[num]) +' event \n' )
+        #print ('The minimum subspace angle is '+"{:.2f}".format(min_angle[num])  +' degree \n')
+    #else:
+        #print ('This is a '+ str(type_[num]) +' event \n') 
+        #print ('The minimum subspace angle is '+"{:.2f}".format(min_angle[num])  +' degree \n') 
+    #plt.figure
+    #plt.plot(voltage[num].T)
+    #plt.xlabel('Time  (0.03 second)')
+    #plt.ylabel('Voltage (p.u.)') 
+    #plt.grid(True)
+    #plt.show()
+    #plt.figure
+    #plt.plot(Vk[num])
+    #plt.xlabel('Time (0.03 second)')
+    #plt.ylabel('Dominant Singular Vectors') 
+    #plt.grid(True)
+    #plt.show()
+    return str(type_[num]),min_angle[num] 
 	
 def main(Json, Csv):
     Csv = Csv[0]
@@ -669,7 +669,7 @@ def main(Json, Csv):
 #check the status of ranker  
     credentials=retrain_ranker(TRAINING_DATA,credentials,RANKER_ID)
     status,ranker_id=check_status(credentials)
-    result = {"t": [],"S1": [],"f_x": [],"title": [],u"M_miss":[],u"M_rec":[]};
+    result = {"t": [],"S1": [],"f_x": [],"title":[],u"M_miss":[],u"M_rec":[],,u"Type":[],u"min_angle":[]};
     if status=='Training':# status=='Available' ||
         #Running command that queries Solr
         curl_cmd = 'curl -u "%s":"%s" "%s%s/solr/%s/fcselect?ranker_id=%s&q=%s&wt=json&fl=id,title"' %\
@@ -694,16 +694,26 @@ def main(Json, Csv):
         delete_old_ranker(credentials,credentials['ranker_id'])
     M_miss, M_rec=main_MissingData()
     t,S1,f_x=main_static_overload()
+    type_, min_angle=main_Event_Identification(9) # the 9th event
+	
+    result[u"M_miss"]=list(M_miss)
+    result[u"title"].append(u'The PMU measurements with missing data')
+    result[u"M_rec"]=list(M_rec)
+    result[u"title"].append(u'The PMU measurements after recovery')
+
     result[u"f_x"]= f_x
     result[u"title"].append(u'The static overload index')
-    result[u"title"].append(u'The aparent power with time')
-    
+    result[u"S1"] = list(S1[:,0]);
     for i in range(0,len(t)):
         result[u"t"].append(t[i][0]);
+    result[u"title"].append(u'The aparent power with time')
 
-    result[u"M_miss"]=list(M_miss)
-    result[u"M_rec"]=list(M_rec)
-    result[u"S1"] = list(S1[:,0]);
+
+    print ('This is a '+ type_ +' event \n')
+    print ('The minimum subspace angle is '+"{:.2f}".format(min_angle)  +' degree \n')
+    result["Type"]=type_
+    result[u"min_anlge"]=min_angle
+
     plt.plot(result[u"M_miss"])
     plt.show()
     plt.plot(result[u"M_rec"])
