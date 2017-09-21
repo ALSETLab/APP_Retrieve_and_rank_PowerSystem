@@ -45,25 +45,25 @@ def start():
             client = Cloudant(serviceUsername, servicePassword, url=serviceURL)
             client.connect()
             database_json = client['incoming_warning']
-            database_csv = client['incoming_csv']
             
             new_csv = []
             new_json = []
-            
-            for doc in database_csv:
-                new_csv.append(doc[u'data'])
-                doc.delete()
-            
+            new_question = []
             for doc in database_json:
-                new_json.append(doc[u'data'])
+                new_json.append(doc[u'json-file'])
+                new_csv.append(doc[u'csv-file'])
+                new_question.append(doc[u'question'])
                 doc.delete()
             client.disconnect()
             
             #Run Processing 
-            if ((len(new_csv)>0) and (len(new_json)>0)):
+            if ((len(new_csv)== 1) and (len(new_json)== 1) and (len(new_question)== 1)):
                 print ("Found new data")
-                result = main(new_json,new_csv)
+                result = main(new_json[0],new_csv[0],new_question[0])
                 save_data(result)
+            elif ((len(new_csv) > 1) or (len(new_json) > 1) or (len(new_question) > 1)):
+                print("ERROR")
+                # This is currently an issue we will fix this later
             else:
                 time.sleep(1) 
         except KeyboardInterrupt:
@@ -130,7 +130,7 @@ def delete_old_ranker(credentials,ranker_id):
     output = process.communicate()[0] 
     return output
 	
-def retrain_ranker(TRAINING_DATA,credentials,ranker_id):
+def retrain_ranker(TRAINING_DATA,credentials,ranker_id,CSV):
     delete_result=delete_old_ranker(credentials,ranker_id)
     BASEURL=credentials['url']
     SOLRURL= BASEURL+"solr_clusters/"
@@ -140,7 +140,7 @@ def retrain_ranker(TRAINING_DATA,credentials,ranker_id):
     SOLR_CLUSTER_ID=credentials['cluster_id']
     COLLECTION_NAME=credentials['collection_name']
     #TRAIN_FILE_PATH=''
-    GROUND_TRUTH_FILE='Temp_csv.csv'
+    GROUND_TRUTH_FILE='./static/Historic_Data/' + CSV
     RANKER_NAME="travel_ranker"
     retrieve_and_rank = RetrieveAndRankV1(
         username=USERNAME,
@@ -644,12 +644,7 @@ def main_Event_Identification(num):
     #plt.show()
     return str(type_[num]),min_angle[num] 
 	
-def main(Json, Csv):
-    Csv = Csv[0]
-    fcsv = open("Temp_csv.csv","wb")
-    wr = csv.writer(fcsv, dialect='excel')
-    wr.writerows(Csv)
-    
+def main(Json, Csv, Question):
     credentials = {"cs_ranker_id": "CUSTOM_RANKER_ID", "username": "398941d3-4eec-4044-825d-05ab160a1655", \
                "config_name": "rr_android_config", "cluster_id": "sc2280e5a3_385f_4e4e_940b_8c3e02853b77", \
                "ranker_id": "7ff711x34-rank-2400", "password": "AULMLN26YUSu", "url":\
@@ -662,14 +657,15 @@ def main(Json, Csv):
     PASSWORD=credentials['password']
     SOLR_CLUSTER_ID=credentials['cluster_id']
     COLLECTION_NAME=credentials['collection_name']
-    QUESTION="which events exceeding the limites"
-    QUESTION = QUESTION.replace(" ","%20")
+    
+    QUESTION = Question.replace(" ","%20")
     RANKER_ID=credentials['ranker_id']
-    TRAINING_DATA='static/Historic_Data/trainingdata.csv'
+    TRAINING_DATA='./static/trainingdata.csv'
 #check the status of ranker  
-    credentials=retrain_ranker(TRAINING_DATA,credentials,RANKER_ID)
+    credentials=retrain_ranker(TRAINING_DATA,credentials,RANKER_ID, Csv)
+    #os.Remove(TRAINING_DATA)
     status,ranker_id=check_status(credentials)
-    result = {"t": [],"S1": [],"f_x": [],"title":[],u"M_miss":[],u"M_rec":[],,u"Type":[],u"min_angle":[]};
+    result = {"t": [],"S1": [],"f_x": [],"title":[],u"M_miss":[],u"M_rec":[],u"Type":[],u"min_angle":[]};
     if status=='Training':# status=='Available' ||
         #Running command that queries Solr
         curl_cmd = 'curl -u "%s":"%s" "%s%s/solr/%s/fcselect?ranker_id=%s&q=%s&wt=json&fl=id,title"' %\
@@ -683,7 +679,7 @@ def main(Json, Csv):
         #main_Event_Identification(num)
     else:
         print ('failed, we will train A new ranker')
-        credentials=retrain_ranker(credentials,ranker_id)
+        credentials=retrain_ranker(credentials,ranker_id,Csv)
         #Running command that queries Solr 
         curl_cmd = 'curl -u "%s":"%s" "%s%s/solr/%s/fcselect?ranker_id=%s&q=%s&wt=json&fl=id,title"' %\
            (USERNAME, PASSWORD, SOLRURL, SOLR_CLUSTER_ID, COLLECTION_NAME, credentials['ranker_id'], QUESTION)    

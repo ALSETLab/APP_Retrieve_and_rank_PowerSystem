@@ -11,8 +11,8 @@ import csv
 def html_LoadHistoric():
     result = "<html><head></head><body>"
     result = result + "<div class='head'> <h2> Select Historic Data File to be streamed </h2> </div>"
-    result = result + "<div class='form'> <form action='/web/startStream'>"
-    result = result + "<label for='csv'> CSV File (PMU Data): </label><select id='csv' name='csv'>"
+    result = result + "<div class='form'> <form action='/startStream'>"
+    result = result + "<label for='csv'> Training Set (historic data): </label><select id='csv' name='csv'>"
 	
     # Find all csv Files in the directory
     for file in os.listdir(os.getcwd() + "/Historic_Data"):
@@ -20,27 +20,33 @@ def html_LoadHistoric():
             result = result + "<option>" + file + "</option>"
     
     result = result + "</select><br><br>"
-    result = result + "<label for='json'> JSON File (Warnings): </label><select id='json' name='json'>"
+    result = result + "<label for='json'> Warning Data (historic data): </label><select id='json' name='json'>"
     # Find all csv Files in the directory
 
     for file in os.listdir(os.getcwd() + "/Historic_Data"):
         if file.endswith(".json"):
             result = result + "<option>" + file + "</option>"
     
-    result = result + "</select> <br><br><input type='submit'> </form> </div> </body>"
+    result = result + "</select> <br><br>"
+    result = result + "<label for='question'> Question for Watson: </label><input id='question' name='question'><br><br>"
+    
+    
+    result = result + "<input type='submit'> </form> </div> </body>"
+    
+    
     return result
 
 # Put historical Data files into Database
 def start_historic( request ):
-    regex_result = re.search("startStream\?csv=([a-z,A-Z,0-9,_-]+)\.csv&json=([a-z,A-Z,0-9,_-]+)\.json",request)
+    regex_result = re.search("startStream\?csv=([a-z,A-Z,0-9,_-]+)\.csv&json=([a-z,A-Z,0-9,_-]+)\.json&question=([a-z,A-Z,0-9,\+_-]+)",request)
     if regex_result is None:
         print("Failed to find specified Files")
         return 0
     else:
         try:
-            print("JSON File: " + regex_result.group(2))
+            print("Question: " + regex_result.group(3))
         except:
-            print ("Failed to find CSV file")
+            print ("Failed to find Question asked")
             return 0
     
     #check if we run on bluemix
@@ -64,35 +70,17 @@ def start_historic( request ):
     client = Cloudant(serviceUsername, servicePassword, url=serviceURL)
     client.connect()
     database_json = client['incoming_warning'];
-    database_csv = client['incoming_csv'];
-    
-    # Write JSON File to Database
-    try:
-        json_file = open("./Historic_Data/" + regex_result.group(2) + ".json")
-        s = re.sub('[\t]', '',json_file.read());
-        jsonDocument = json.loads(s)
-    except:
-       print ("Error Reading JSON File")
-       return 0
    
-    json_db = {"data": jsonDocument, "Time-in" : time.time()}
+    
+    t = str(int(time.time()))
+    #jfile = t + ".json"
+    #cfile = t + ".csv"
+    json_db = {u"json-file": regex_result.group(2) + ".json", u"csv-file": regex_result.group(1) + ".csv", u"question": regex_result.group(3), u"Time-in" : t}
+
     newDocument = database_json.create_document(json_db)
 
-    # Write CSV file to Database
-    # Note: NoSQL has a limit on 10 DB writes per second so it won't read anymore
-
-    counter = 0
-    rcounter = 0
-    csv_data = [];
-    with open("./Historic_Data/" + regex_result.group(1) + ".csv", 'rb') as csvfile:
-        csv_reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        for row in csv_reader:
-            csv_data.append(row)
-        
-    newDocument = database_csv.create_document({"data" : csv_data, "Time-in": time.time()})
-    
-     
     client.disconnect()
+    
     return 1
 
 # Retrieve Data from DataBase and return as Json file

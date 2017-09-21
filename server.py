@@ -37,24 +37,24 @@ class Custom_Http(Handler):
 
     def do_GET(self):
         self._set_headers()
-        regex = re.search('^/web/([A-Z,a-z,0-9])+', self.path)
+        regex = re.search('^/([A-Z,a-z,0-9])+', self.path)
         if regex is None:
             self.wfile.write("<html><body><h1>Error Invalid URL</h1></body></html>")
         else:
-            if regex.group(0) == "/web/start":
+            if regex.group(0) == "/start":
                 logging.info('called start')  # will not print anything
                 self.wfile.write(Generate_HTML.html_LoadHistoric())
-            elif regex.group(0) == "/web/startStream":
+            elif regex.group(0) == "/startStream":
                 print("Start Streaming Historic Data")
                 Generate_HTML.start_historic(self.path);
             	self.wfile.write("<html><body><h1>Started Streaming</h1></body></html>")
-            elif regex.group(0) == "/web/results":
+            elif regex.group(0) == "/results":
                 f = open("Results.html",'rb')
                 self.wfile.write(f.read())
-            elif regex.group(0) == "/web/data":
+            elif regex.group(0) == "/data":
                 self.wfile.write(Generate_HTML.Retrieve_Result())
-            elif regex.group(0) == "/web/assets":
-                regex_file = re.search('^/web/assets/([A-Z,a-z,0-9/.-]+)', self.path)
+            elif regex.group(0) == "/assets":
+                regex_file = re.search('^/assets/([A-Z,a-z,0-9/.-]+)', self.path)
                 print (regex_file.group(1))
                 try:
                     f = open("./assets/" + regex_file.group(1),'rb')
