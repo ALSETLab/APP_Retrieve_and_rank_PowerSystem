@@ -95,8 +95,17 @@ def save_data(Results):
     client = Cloudant(serviceUsername, servicePassword, url=serviceURL)
     client.connect()
     database = client['results']
-    database.create_document({"data" : Results, "Time-in": time.time()})
+        
+    t = str(int(time.time()))
+    f_name = t + ".json";
+    database.create_document({"file" : f_name, "runtime": time.time()})
+    
     client.disconnect()
+    
+    with open('./static/Results/' + f_name, 'wb') as fp:
+        json.dump({"data" : Results, "Time-in": time.time()}, fp)
+        
+    
     return 0
     
 # Wenting has the actual Python code for here, I am just looking at plotting something 
@@ -710,10 +719,10 @@ def main(Json, Csv, Question):
     result["Type"]=type_
     result[u"min_angle"]=min_angle
 
-    plt.plot(result[u"M_miss"])
-    plt.show()
-    plt.plot(result[u"M_rec"])
-    plt.show()
+    #plt.plot(result[u"M_miss"])
+    #plt.show()
+    #plt.plot(result[u"M_rec"])
+    #plt.show()
           
     combined_result = {u"Retrieve-Rank": output, u"statid-overload": result};
     return combined_result	

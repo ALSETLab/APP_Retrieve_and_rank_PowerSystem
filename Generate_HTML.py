@@ -110,8 +110,14 @@ def Retrieve_Result ():
     result = {u"data" : [], u"Time" : []}
             
     for dat in database_json:
-        result[u"data"].append(dat[u'data'])
-        result[u"Time"].append(dat[u'Time-in'])
-        
+        result[u"Time"].append(dat[u'runtime'])
+        #try:
+        json_file = open(u"Results/" + dat[u'file'])
+            
+        s = re.sub('[\t]', '',json_file.read());
+        jsonDocument = json.loads(s)
+        result[u"data"].append(jsonDocument[u'data'])
+        #except:
+         #   print ("File not Found")
     client.disconnect()    
     return json.dumps(result)
