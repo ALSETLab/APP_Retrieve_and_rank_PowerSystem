@@ -17,13 +17,25 @@
         
         function update_data(data) 
         {
-            var body =  document.getElementsByTagName('body')[0];
+          var body =  document.getElementsByTagName('body')[0];
             
           for (var i=0; i < data["Time"].length; i++)
           {
             var div = document.createElement("div");
-            var header = document.createElement("h2");
+            var header = document.createElement("h1");
             header.innerHTML = "Results Run " + i + " started at: " + format_time(data["Time"][i]);
+            // headers for each section
+            var header_RandR = document.createElement("h2")
+            header_RandR.innerHTML = "Retrieve and Rank Results"
+            
+            var header_missing_data = document.createElement("h2")
+            header_missing_data.innerHTML = "Missing Data Recovery Results"
+            
+            var header_overload = document.createElement("h2")
+            header_overload.innerHTML = "Static Overload Index Estimation Results"
+            
+            var header_evendIdentification = document.createElement("h2")
+            header_evendIdentification.innerHTML = "Event Identification Results"
             
             // add error message
             var head = document.createElement("p");
@@ -92,7 +104,7 @@
   
             
             p_identification = document.createElement("p")
-            p_identification.innerHTML = "Event Identification: " +  data["data"][i]["statid-overload"]["Type"] + "<br><br>" + "minimum subspace angle: " + data["data"][i]["statid-overload"]["min_angle"]
+            p_identification.innerHTML = "Event Type: " +  data["data"][i]["statid-overload"]["Type"] + "<br><br>" + "minimum subspace angle: " + data["data"][i]["statid-overload"]["min_angle"]
             
             div_plot_2 = document.createElement("div");
             plot_data = []
@@ -125,13 +137,17 @@
   
             
             div.appendChild(header);
+            div.appendChild(header_RandR);
             div.appendChild(head);
             div.appendChild(errorP);
             div.appendChild(tbl);
-            div.appendChild(p_overload);
+            div.appendChild(header_missing_data);
             div.appendChild(div_plot);
-            div.appendChild(p_identification);
+            div.appendChild(header_overload);
+            div.appendChild(p_overload);
             div.appendChild(div_plot_2);
+            div.appendChild(header_evendIdentification);
+            div.appendChild(p_identification);
             body.appendChild(div);
           }
 
