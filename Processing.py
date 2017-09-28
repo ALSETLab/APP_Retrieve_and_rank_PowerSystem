@@ -651,7 +651,7 @@ def main_Event_Identification(num):
     #plt.ylabel('Dominant Singular Vectors') 
     #plt.grid(True)
     #plt.show()
-    return str(type_[num]),min_angle[num] 
+    return str(type_[num]),min_angle[num],voltage[num].T
 	
 def main(Json, Csv, Question):
     credentials = {"cs_ranker_id": "CUSTOM_RANKER_ID", "username": "398941d3-4eec-4044-825d-05ab160a1655", \
@@ -699,7 +699,7 @@ def main(Json, Csv, Question):
         delete_old_ranker(credentials,credentials['ranker_id'])
     M_miss, M_rec=main_MissingData()
     t,S1,f_x=main_static_overload()
-    type_, min_angle=main_Event_Identification(9) # the 9th event
+    type_, min_angle,voltage=main_Event_Identification(9) # the 9th event
 	
     result[u"M_miss"]=list(M_miss)
     result[u"title"].append(u'The PMU measurements with missing data')
@@ -722,6 +722,7 @@ def main(Json, Csv, Question):
     print ('The minimum subspace angle is '+"{:.2f}".format(min_angle)  +' degree \n')
     result[u"Type"]=type_
     result[u"min_angle"]=min_angle
+    result[u"voltage"]=voltage # This is a matrix 134 by 68. plot this voltage magnitudes, the xlable is 'Time (0.03 second)', the ylabel is 'Voltage Magnitudes (p.u.)'
 
     #plt.plot(result[u"M_miss"])
     #plt.show()
