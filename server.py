@@ -47,7 +47,9 @@ class Custom_Http(Handler):
             elif regex.group(0) == "/startStream":
                 print("Start Streaming Historic Data")
                 Generate_HTML.start_historic(self.path);
-            	self.wfile.write("<html><body><h1>Started Streaming</h1></body></html>")
+            	f = open("Results.html",'rb')
+                self.wfile.write(f.read())
+                
             elif regex.group(0) == "/results":
                 f = open("Results.html",'rb')
                 self.wfile.write(f.read())
