@@ -6,6 +6,7 @@
 	<link rel="stylesheet" href="assets/stylesheets/style.css" />
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <meta http-equiv="refresh" content="60" >
 </head>
 </head>
 <body>
@@ -134,8 +135,34 @@
                 
                 }
            Plotly.plot(div_plot_2, plot_data, layout, {showLink: false});
-  
             
+            div_plot_3 = document.createElement("div");
+            plot_data = []
+            t = generate_t(1/30,data["data"][i]["statid-overload"]["voltage"][0].length);
+            
+            for (var j=0; j < data["data"][i]["statid-overload"]["voltage"].length; j++)
+            {
+                trace = {
+                      x: t,
+                      y: data["data"][i]["statid-overload"]["voltage"][j].map(Number),
+                      type: 'line',
+                    };
+                    plot_data.push(trace);    
+            }           
+            
+                    
+            var layout = {
+                title: 'Bus Voltages',
+                xaxis: {title: 'Time (s)', showline: true, mirror: 'allticks', ticks: 'inside'},
+                yaxis: {title: 'Voltage (pu)', showline: true, mirror: 'allticks', ticks: 'inside'},
+                margin: {l: 40, b: 40, t: 60},
+                
+                }
+           Plotly.plot(div_plot_3, plot_data, layout, {showLink: false});
+           
+           
+           
+          
             div.appendChild(header);
             div.appendChild(header_RandR);
             div.appendChild(head);
@@ -149,6 +176,7 @@
             div.appendChild(div_plot);
             div.appendChild(header_evendIdentification);
             div.appendChild(p_identification);
+            div.appendChild(div_plot_3);
             body.appendChild(div);
           }
 
@@ -210,7 +238,18 @@
         {
                 return new Date(s * 1e3).toISOString();
         }
-        
+        function generate_t(T, n)
+        {
+            array = [];
+            i = 0
+            while ( i < n)
+            {
+                array.push(i*T);
+                i = i +1;
+            }
+            return array;
+            
+        }
         data = $.getJSON( "data.data", function (data) { update_data (data)})
 	</script>
 </body>

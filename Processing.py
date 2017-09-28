@@ -33,7 +33,7 @@ def start():
                 s = json_file.read()
                 vcap_servicesData = json.loads(s)
                 vcap_servicesData = vcap_servicesData[u'services']
-            
+           
             # Connect To Cloudant DB
             cloudantNoSQLDBData = vcap_servicesData[u'cloudantNoSQLDB']
             credentials = cloudantNoSQLDBData[0]
@@ -56,6 +56,8 @@ def start():
                 doc.delete()
             client.disconnect()
             
+            
+            
             #Run Processing 
             if ((len(new_csv)== 1) and (len(new_json)== 1) and (len(new_question)== 1)):
                 print ("Found new data")
@@ -67,6 +69,7 @@ def start():
             else:
                 time.sleep(1) 
         except KeyboardInterrupt:
+            print ("done runing")
             return 0
     return 0
     # check for new data
@@ -101,6 +104,16 @@ def save_data(Results):
     database.create_document({"file" : f_name, "runtime": time.time()})
     
     client.disconnect()
+    
+    test_directory = "./static/"
+    for child in os.listdir(test_directory):
+        test_path = os.path.join(test_directory, child)
+        if os.path.isdir(test_path):
+            print test_path
+            
+        
+        
+    open('./static/Results/' + f_name, 'w+').close();
     
     with open('./static/Results/' + f_name, 'wb') as fp:
         json.dump({"data" : Results, "Time-in": time.time()}, fp)
@@ -722,8 +735,12 @@ def main(Json, Csv, Question):
     print ('The minimum subspace angle is '+"{:.2f}".format(min_angle)  +' degree \n')
     result[u"Type"]=type_
     result[u"min_angle"]=min_angle
-    result[u"voltage"]=voltage # This is a matrix 134 by 68. plot this voltage magnitudes, the xlable is 'Time (0.03 second)', the ylabel is 'Voltage Magnitudes (p.u.)'
-
+    
+    # This is a matrix 134 by 68. plot this voltage magnitudes, the xlable is 'Time (0.03 second)', the ylabel is 'Voltage Magnitudes (p.u.)'
+    result[u"voltage"]=[] 
+    for i in range(0,len(voltage[0,:])):
+         result[u"voltage"].append(list(voltage[:,i]))
+         
     #plt.plot(result[u"M_miss"])
     #plt.show()
     #plt.plot(result[u"M_rec"])
